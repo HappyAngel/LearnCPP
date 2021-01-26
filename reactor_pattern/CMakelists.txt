@@ -1,0 +1,10 @@
+# set minimum cmake version
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+
+# project name and language
+project(reactor_example LANGUAGES CXX)
+
+# list sources
+list(APPEND _sources accept_event.hpp accept_event.cpp demux_table.hpp demux_table.cpp dummy_event_handler.hpp dummy_event_handler.cpp epoll_reactor_implementation.hpp epoll_reactor_implementation.cpp event_handler.cpp event_handler.hpp main.cpp reactor_interface.hpp reactor.hpp reactor.cpp)
+
+add_executable(reactor ${_sources})
