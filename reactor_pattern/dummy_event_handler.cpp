@@ -26,10 +26,10 @@ void DummyEventHandler::handle_event(SOCKET s, Event_Type et) {
         }
         break;
       } else if (n == 0) {
-        std::cout<<"n==0"<<std::endl;
-        close(s);
+        std::cout<<"no data to read now, exit read event"<<std::endl;
         break;
       } else {
+        buf[n] = '\0';
         std::cout<<"received "<<buf<<std::endl;
         if (write(s, buf, n) < 0) {
           std::cerr << "write error" <<std::endl;

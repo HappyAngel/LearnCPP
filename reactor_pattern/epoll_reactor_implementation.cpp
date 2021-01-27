@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <strings.h>
 #include <netinet/in.h>
+#include "utils.hpp"
 
 namespace happyangel {
 void EPOLL_Reactor_Implementation::register_handler(Event_Handler* eh,
@@ -34,15 +35,13 @@ bool EPOLL_Reactor_Implementation::initialize() {
 
   efd_ = epoll_create1(0);
   if (efd_ == -1) {
-    std::cerr << "epoll create failed" << std::endl;
-    return false;
+    error(1, errno, "epoll create failed");
   }
 
   event.data.fd = listen_fd_;
   event.events = EPOLLIN | EPOLLET;
   if (epoll_ctl(efd_, EPOLL_CTL_ADD, listen_fd_, &event) == -1) {
-    std::cerr << "epoll_ctl add listen fd failed" << std::endl;
-    return false;
+    error(1, errno, "epoll_ctl add listen fd failed");
   }
 
   /* Buffer where events are returned */
@@ -74,8 +73,7 @@ void EPOLL_Reactor_Implementation::handle_events() {
         event.data.fd = fd;
         event.events = EPOLLIN | EPOLLET;  // edge-triggered
         if (epoll_ctl(efd_, EPOLL_CTL_ADD, fd, &event) == -1) {
-          std::cerr << "epoll_ctl add connection fd failed" << std::endl;
-          continue;
+          error(1, errno, "epoll_ctl add connection fd failed");
         }
         // call accept event handler
         Demux_Table::Tuple* pTuple = demux_table_.GetTuple(listen_fd_);
@@ -114,7 +112,7 @@ void EPOLL_Reactor_Implementation::handle_events() {
 				}
       }
 
-      if (events_[i].events & EPOLLHUP) {
+      if (events_[i].events & EPOLLRDHUP) {
         // close
 				Demux_Table::Tuple* pTuple = demux_table_.GetTuple(socket_fd);
 				if (pTuple)
@@ -148,14 +146,12 @@ int EPOLL_Reactor_Implementation::tcp_nonblocking_server_listen(int port) {
   int rt1 =
       bind(listenfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
   if (rt1 < 0) {
-    std::cout << "bind failed" << std::endl;
-    exit(EXIT_FAILURE);
+    error(1, errno, "bind failed ");
   }
 
   int rt2 = listen(listenfd, 1024);
   if (rt2 < 0) {
-    std::cout << "listen failed" << std::endl;
-    exit(EXIT_FAILURE);
+    error(1, errno, "listen failed ");
   }
   return listenfd;
 }
