@@ -57,7 +57,15 @@ void EPOLL_Reactor_Implementation::handle_events() {
   int socket_fd;
   for (int i = 0; i < n; i++) {
     if ((events_[i].events & EPOLLERR) || (events_[i].events & EPOLLHUP)) {
-      std::cerr << "epoll error" << std::endl;
+      std::cout<<"epoll error"<<std::endl;
+      // close
+      socket_fd = events_[i].data.fd;
+      Demux_Table::Tuple* pTuple = demux_table_.GetTuple(socket_fd);
+      if (pTuple) {
+        if (pTuple->event_Type == CLOSE_EVENT) {
+          pTuple->event_handler->handle_event(socket_fd, CLOSE_EVENT);
+        }
+      }
       close(events_[i].data.fd);
       continue;
     } else if (listen_fd_ == events_[i].data.fd) {
@@ -108,18 +116,6 @@ void EPOLL_Reactor_Implementation::handle_events() {
 					if (pTuple->event_Type == WRITE_EVENT)
 					{
 						pTuple->event_handler->handle_event(socket_fd, WRITE_EVENT);
-					}
-				}
-      }
-
-      if (events_[i].events & EPOLLRDHUP) {
-        // close
-				Demux_Table::Tuple* pTuple = demux_table_.GetTuple(socket_fd);
-				if (pTuple)
-				{
-					if (pTuple->event_Type == CLOSE_EVENT)
-					{
-						pTuple->event_handler->handle_event(socket_fd, CLOSE_EVENT);
 					}
 				}
       }

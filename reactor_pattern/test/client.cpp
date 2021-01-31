@@ -57,12 +57,13 @@ int main(int argc, char **argv) {
 
     while(i>0) {
         send_data(sockfd);
-        sleep(1);
         i--;
     }
 
-    close(sockfd);
-
+    sleep(3);
+    shutdown(sockfd, SHUT_RDWR);
+    sleep(2);
+    std::cout<<"exit client"<<std::endl;
     exit(0);
 }
 
